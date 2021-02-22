@@ -16,19 +16,19 @@ namespace csharp
                 switch (item.Name)
                 {
                     case "Aged Brie":
-                        item.UpdateItemValues(ItemType.BetterWithAging);
+                        item.UpdateBetterWithAging();
                         break;
                     case "Backstage passes to a TAFKAL80ETC concert":
-                        item.UpdateItemValues(ItemType.BackstagePass);
+                        item.UpdateBackstagePass();
                         break;
                     case "Sulfuras, Hand of Ragnaros":
-                        item.UpdateItemValues(ItemType.Legendary);
+                        item.UpdateLegendary();
                         break;
                     case "Conjured Mana Cake":
-                        item.UpdateItemValues(ItemType.Conjured);
+                        item.UpdateConjured();
                         break;
                     default:
-                        item.UpdateItemValues(ItemType.Default);
+                        item.UpdateDefaultItem();
                         break;
                 }
             }
@@ -37,42 +37,54 @@ namespace csharp
 
     public static class GildedRoseExtensions
     {
-        public static void UpdateItemValues(this Item item, ItemType itemType)
+        private static int fixQuality(int quality, bool isLegendary = false)
         {
-            if (itemType != ItemType.Legendary)
-                item.SellIn--;
+            if (quality < 0)
+                quality = 0; 
+            else if (quality > 50 && !isLegendary)
+                quality = 50;
+            else if (isLegendary)
+                quality = 80;
 
-            int qualityDecrease = item.SellIn >= 0 ? 1 : 2;
-
-            if (itemType == ItemType.Default)
-                item.Quality -= qualityDecrease;
-            else if (itemType == ItemType.Conjured)
-                item.Quality -= qualityDecrease * 2;
-            else if (itemType == ItemType.BetterWithAging)
-                item.Quality++;
-            else if (itemType == ItemType.BackstagePass)
-            {
-                item.Quality++;
-                if (item.SellIn < 10)
-                    item.Quality++;
-                if (item.SellIn < 5)
-                    item.Quality++;
-                if (item.SellIn < 0)
-                    item.Quality = 0;
-            }
-
-            if (item.Quality < 0)
-                item.Quality = 0;
-            else if (item.Quality > 50 && itemType != ItemType.Legendary)
-                item.Quality = 50;
+            return quality;
         }
-    }
-    public enum ItemType
-    {
-        Legendary,
-        BackstagePass,
-        Conjured,
-        BetterWithAging,
-        Default
+        public static void UpdateDefaultItem(this Item item)
+        {
+            item.SellIn--;
+            int qualityDecrease = item.SellIn >= 0 ? 1 : 2;
+            item.Quality -= qualityDecrease;
+            item.Quality = fixQuality(item.Quality);
+        }
+        public static void UpdateConjured(this Item item)
+        {
+            item.SellIn--;
+            int qualityDecrease = item.SellIn >= 0 ? 2 : 4;
+            item.Quality -= qualityDecrease;
+            item.Quality = fixQuality(item.Quality);
+        }
+        public static void UpdateBetterWithAging(this Item item)
+        {
+            item.SellIn--;
+            item.Quality++;
+            item.Quality = fixQuality(item.Quality);
+        }
+        public static void UpdateBackstagePass(this Item item)
+        {
+            item.SellIn--;
+
+            item.Quality++;
+            if (item.SellIn < 10)
+                item.Quality++;
+            if (item.SellIn < 5)
+                item.Quality++;
+            if (item.SellIn < 0)
+                item.Quality = 0;
+
+            item.Quality = fixQuality(item.Quality);
+        }
+        public static void UpdateLegendary(this Item item)
+        {
+            fixQuality(item.Quality, true);
+        }
     }
 }
