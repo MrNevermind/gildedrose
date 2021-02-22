@@ -84,7 +84,7 @@ namespace csharp
         }
         public static void UpdateLegendary(this Item item)
         {
-            fixQuality(item.Quality, true);
+            item.Quality = fixQuality(item.Quality, true);
         }
     }
 }
